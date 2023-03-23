@@ -3,11 +3,59 @@ const Movie = require('../models/movie.model');
 const getMovie = async (req,res) =>{
 
     try {
-        const allMovies = await Movie.find();
-        return res.status(200).json(allMovies);
+        let {page,limit} = req.query;
+        
+        const numMovies = await Movie.countDocuments();
+        limit = limit ? parseInt(limit) : 10;
+        if(page && !isNaN(parseInt(page))){
+
+            page = parseInt(page);
+            let numPages = numMovies%limit > 0 ? numMovies/limit + 1 : numMovies/limit;
+       
+            if(page > numPages) page = numPages;
+
+            if(page < 1) page = 1;
+
+            const skip = (page -1) * limit;
+
+            const movies = await Movie.find().skip(skip).limit(limit);
+            return res.status(200).json(
+                {
+                    info: {
+                        numTotal: numMovies,
+                        page: page,
+                        limit: limit,
+                        nextPage: numPages >= page+1 ? `/movie?page=${page + 1}&limit=${limit}` : null,
+                        prevPage: page != 1 ? `/movie?page=${page - 1}&limit=${limit}` : null
+                    },
+                    results: movies
+                }
+            )       
+        } else {
+            const movies = await Movie.find().limit(limit);
+            return res.status(200).json(
+                {
+                    info: {
+                        numTotal: numMovies,
+                        page: 1,
+                        limit: limit,
+                        nextPage: numMovies > limit ? `/movie?page=2&limit=${limit}` : null,
+                        prevPage: null
+                    },
+                    results: movies
+                }
+            );
+        }
     } catch (error) {
         return res.status(500).json(error);
     }
+
+    // try {
+    //     const allMovies = await Movie.find();
+    //     return res.status(200).json(allMovies);
+    // } catch (error) {
+    //     return res.status(500).json(error);
+    // }
 }
 
 const getMovieById = async (req,res) => {

@@ -4,6 +4,7 @@ const router = express.Router();
 
 const {
     getCinema,
+    getCinemaById,
     postCinema,
     putCinema,
     deleteCinema
@@ -11,8 +12,9 @@ const {
 } = require('../controllers/cinema.controller');
 
 router.get("/", getCinema);
+router.get("/:id", getCinemaById);
 router.post("/", postCinema);
-router.put("/", putCinema);
-router.delete("/", deleteCinema);
+router.put("/:id", putCinema);
+router.delete("/:id", deleteCinema);
 
 module.exports = router;
